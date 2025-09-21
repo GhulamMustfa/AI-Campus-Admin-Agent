@@ -1,49 +1,84 @@
+# Campus Admin Agent
 
-# AI Campus Admin Agent – Setup Instructions
+An AI-powered campus administration system with conversational interface for managing student records and analytics.
 
-## 1. Clone the Repository
+## Features
+
+- AI Chat Assistant with memory support
+- Student CRUD operations
+- Real-time analytics
+- JWT authentication
+- Streaming responses
+
+## Quick Setup
+
+1. **Clone and install**
 ```bash
-git clone <your-repo-url>
-cd AI-Campus-Admin-Agent
-```
-
-## 2. Install Dependencies
-```bash
+git clone <repo-url>
+cd campus-admin-agent
 poetry install
 ```
 
-## 3. Configure Environment Variables
-- Create a `.env` file in the project root.
-- Add your database connection string and Gemini/OpenAI API key as given in .env.example:
-	```
-	DB_URL=your_database_url
-	GEMINI_API_KEY=your_gemini_api_key
-	```
+2. **Environment setup**
+Create `.env` file:
+```env
+GEMINI_API_KEY=your_gemini_api_key
+DATABASE_URI=mongodb://localhost:27017
+SECRET_KEY=your-secret-key
+```
 
-## 4. Start the Database
-- Make sure MongoDB is running and accessible.
+3. **Start services**
+```bash
+poetry run uvicorn backend.main:app --reload
+```
 
-## 5. Run the FastAPI Server
- - poetry run uvicorn backend.main:app --reload
+4. **Test the API**
+- API Docs: `http://localhost:8000/docs`
+- Import `Campus_Admin_API_Collection.json` in Postman
 
+## API Endpoints
 
-## 7. Test Endpoints
-- Use Postman or curl to test:
-	- `/chat`
-	- `/chat/stream`
-	- `/students`
-	- `/analytics`
-	- `/optional/faq`
+### Authentication
+- `POST /admin/signup` - Create admin account
+- `POST /admin/login` - Get access token
 
-## Optional: Campus FAQ Tools
+### Chat
+- `POST /chat` - AI assistant chat
+- `POST /chat/stream` - Streaming chat responses
 
-The agent supports different tools for:
-- student data- list, add, updaate, delete
-- analytics - show summary or analytics
-- Event schedule
+### Students
+- `GET /students` - List all students
+- `POST /students` - Create student
+- `PATCH /students/{id}` - Update student
+- `DELETE /students/{id}` - Delete student
 
-These can be accessed via chat endpoints by asking questions like:
-- "add student with name, id, department, email."
-- "delete student of following details"
-- "Show me upcoming campus events."
-- "show me summary of analytics"
+### Analytics
+- `GET /analytics` - Get dashboard data
+- `GET /analytics/summary` - Get summary stats
+
+## Usage Example
+
+```bash
+# 1. Create admin
+curl -X POST "http://localhost:8000/admin/signup" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@test.com","password":"admin123","name":"Admin"}'
+
+# 2. Login
+curl -X POST "http://localhost:8000/admin/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@test.com","password":"admin123"}'
+
+# 3. Chat with AI
+curl -X POST "http://localhost:8000/chat" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"message":"List all students","user_id":"test"}'
+```
+
+## Tech Stack
+
+- Python
+- FastAPI + MongoDB
+- OpenAI Agent SDK with Gemini
+- JWT authentication
