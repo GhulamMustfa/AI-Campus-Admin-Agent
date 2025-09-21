@@ -42,15 +42,27 @@ def update_student(identifier: str, field: str, new_value: str) -> Dict[str, Any
     identifier = identifier.strip()
     if field not in ["name", "department", "email", "student_id"]:
         return {"error": "Invalid field"}
-    query = {"email": identifier.lower()} if field != "student_id" else {"student_id": identifier}
+    student = students_collection.find_one({"email": identifier.lower()}) \
+              or students_collection.find_one({"student_id": identifier})
+    if not student:
+        try:
+            sid = int(identifier)
+            student = students_collection.find_one({"student_id": sid})
+        except:
+            pass
+    if not student:
+        return {"error": "Student not found"}
     if field == "email":
         new_value = new_value.lower().strip()
-    result = students_collection.update_one(query, {"$set": {field: new_value}})
+    result = students_collection.update_one(
+        {"_id": student["_id"]}, 
+        {"$set": {field: new_value}}
+    )
     if result.matched_count:
-        updated_student = students_collection.find_one(query)
+        updated_student = students_collection.find_one({"_id": student["_id"]})
         updated_student["_id"] = str(updated_student["_id"])
         return {"message": "Student updated successfully", "student": updated_student}
-    return {"error": "Student not found"}
+    return {"error": "Update failed"}
 
 def delete_student(identifier: str) -> Dict[str, Any]:
     identifier = identifier.strip()

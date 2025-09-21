@@ -42,5 +42,4 @@ async def stream_agent(message: str, context=None):
     """Stream agent output as tokens"""
     runner = Runner()
     result = await runner.run(agent, message)
-    # Return the complete response at once
     yield result.final_output

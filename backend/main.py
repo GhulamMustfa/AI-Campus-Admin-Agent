@@ -56,34 +56,38 @@ app = FastAPI(title="Campus Admin Agent")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 
+class AuthRequest(BaseModel):
+    email: str
+    password: str
+    name: str = None  
+
 @app.post("/admin/signup")
-def admin_signup(email: str = Body(...), password: str = Body(...), name: str = Body(None)):
-    email = email.lower().strip()
+def admin_signup(auth_data: AuthRequest):
+    email = auth_data.email.lower().strip()
     if admins_collection.find_one({"email": email}):
         raise HTTPException(status_code=400, detail=f"Admin with email {email} already exists")
-    hashed = hash_password(password)
+    hashed = hash_password(auth_data.password)
     admin = {
         "email": email, 
         "password": hashed, 
-        "name": name or "", 
+        "name": auth_data.name or "", 
         "created_at": datetime.datetime.utcnow(), 
         "verified": True
     }
     admins_collection.insert_one(admin)
-    return {"message": "Admin created successfully", "admin": {"email": email, "name": name}}
+    return {"message": "Admin created successfully", "admin": {"email": email, "name": auth_data.name}}
 
 @app.post("/admin/login")
-def admin_login(form_data: OAuth2PasswordRequestForm = Depends()):
-    admin = admins_collection.find_one({"email": form_data.username.lower()})  # Add .lower()
-    if not admin or not verify_password(form_data.password, admin["password"]):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+def admin_login(auth_data: AuthRequest):
+    email = auth_data.email.lower().strip()
+    admin = admins_collection.find_one({"email": email})
+    if not admin:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    if not verify_password(auth_data.password, admin["password"]):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
     
     access_token = create_access_token(data={"sub": admin["email"]})
-    return {
-        "access_token": access_token, 
-        "token_type": "bearer",
-        "user_info": {"email": admin["email"], "name": admin.get("name", "")}  # Add user info
-    }
+    return {"access_token": access_token, "token_type": "bearer"}
 
 @app.get("/")
 def root():

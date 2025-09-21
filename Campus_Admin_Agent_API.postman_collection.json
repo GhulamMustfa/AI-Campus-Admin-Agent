@@ -1,0 +1,328 @@
+{
+	"info": {
+		"_postman_id": "cd90958e-464a-4eb1-871e-bbae9bd0f8da",
+		"name": "Campus Admin Agent API",
+		"description": "Testing all endpoints for Campus Admin Agent",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "48650275",
+		"_collection_link": "https://mustfafsd41-9728646.postman.co/workspace/mustfafsd41's-Workspace~e066d80c-1c89-4595-8eff-546feecaf38c/collection/48650275-cd90958e-464a-4eb1-871e-bbae9bd0f8da?action=share&source=collection_link&creator=48650275"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Admin signup",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"admin@campus.com\",\r\n  \"password\": \"admin123\",\r\n  \"name\": \"Test Admin\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/signup",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "admin login",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// This will run before the request\r",
+									"if (!pm.environment.get(\"access_token\")) {\r",
+									"    console.log(\"No token found. Please run login first.\");\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"admin@campus.com\",\r\n  \"password\": \"admin123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"admin",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "StartFragmentLogin and signup endpointsEndFragment"
+		},
+		{
+			"name": "student",
+			"item": [
+				{
+					"name": "create student",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"John Doe\",\r\n  \"student_id\": \"STU001\",\r\n  \"department\": \"Computer Science\",\r\n  \"email\": \"john@student.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/students",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"students"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all student",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/students",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"students"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Student by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/students/STU001",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"students",
+								"STU001"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update srudent",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"field\": \"department\",\r\n  \"new_value\": \"Data Science\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/students/STU001",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"students",
+								"STU001"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete student",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/students/STU001",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"students",
+								"STU001"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "chat and streaming endpoints"
+		},
+		{
+			"name": "chat",
+			"item": [
+				{
+					"name": "chat request",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"message\": \"List all students\",\r\n  \"user_id\": \"test_user_1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/chat",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chat"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "chat stream",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"message\": \"How many students do we have?\",\r\n  \"user_id\": \"test_user_1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/chat/stream",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chat",
+								"stream"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "student crud operations"
+		},
+		{
+			"name": "analytics",
+			"item": [
+				{
+					"name": "get analytics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/analytics",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"analytics"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get analytics summary",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/analytics/summary",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"analytics",
+								"summary"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Analytics and reporting endpoints"
+		},
+		{
+			"name": "root - health check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
