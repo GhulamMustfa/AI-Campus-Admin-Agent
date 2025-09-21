@@ -8,7 +8,7 @@ import asyncio
 from typing import Dict, Any
 
 # Import our modules
-from backend.agent_gemini_fixed import run_agent_with_tools
+from backend.agent import run_agent_with_tools
 from backend.student_router import router
 from backend.analytics_router import analytics_router
 
@@ -51,7 +51,6 @@ def root():
 def health_check():
     return {"status": "healthy", "timestamp": time.time()}
 
-# Normal chat endpoint
 @app.post("/chat", response_model=ChatResponse)
 async def chat(msg: ChatMessage):
     try:
@@ -62,20 +61,17 @@ async def chat(msg: ChatMessage):
         logger.error(f"Chat error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Chat processing failed: {str(e)}")
 
-# Streaming chat endpoint (SSE)
 @app.post("/chat/stream")
 async def chat_stream(msg: ChatMessage):
     async def event_stream():
         try:
             logger.info(f"Streaming chat request from user {msg.user_id}")
             
-            # Get the full response first (for now)
             response, _ = await run_agent_with_tools(msg.message, msg.user_id)
             
-            # Stream it character by character
             for char in response:
                 yield f"data: {char}\n\n"
-                await asyncio.sleep(0.01)  # Small delay for streaming effect
+                await asyncio.sleep(0.01)
             
             yield "data: [DONE]\n\n"
             
@@ -86,11 +82,9 @@ async def chat_stream(msg: ChatMessage):
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 
-# Include routers
 app.include_router(router, prefix="/api/v1")
 app.include_router(analytics_router, prefix="/api/v1")
 
-# Global exception handler
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     logger.error(f"Global exception: {str(exc)}")

@@ -39,19 +39,15 @@ class UpdateStudent(BaseModel):
             raise ValueError(f'Field must be one of: {allowed_fields}')
         return v
 
-# Create student
 @router.post("/students")
 async def create_student(student: Student):
-    """Create a new student"""
     try:
         logger.info(f"Creating student: {student.name} ({student.student_id})")
         
-        # Check if student already exists
         existing = students_collection.find_one({"student_id": student.student_id})
         if existing:
             raise HTTPException(status_code=400, detail=f"Student ID {student.student_id} already exists")
 
-        # Use the tool function
         result = await add_student(student.name, student.student_id, student.department, student.email)
         
         return {
@@ -67,10 +63,8 @@ async def create_student(student: Student):
         logger.error(f"Error creating student: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to create student: {str(e)}")
 
-# Read student
 @router.get("/students/{student_id}")
 async def get_student_by_id(student_id: str):
-    """Get student by ID"""
     try:
         logger.info(f"Getting student: {student_id}")
         
@@ -87,10 +81,8 @@ async def get_student_by_id(student_id: str):
         logger.error(f"Error getting student: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get student: {str(e)}")
 
-# Update student
 @router.patch("/students/{student_id}")
 async def update_student_by_id(student_id: str, update: UpdateStudent):
-    """Update student information"""
     try:
         logger.info(f"Updating student {student_id}: {update.field} = {update.new_value}")
         
@@ -107,10 +99,8 @@ async def update_student_by_id(student_id: str, update: UpdateStudent):
         logger.error(f"Error updating student: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to update student: {str(e)}")
 
-# Delete student
 @router.delete("/students/{student_id}")
 async def delete_student_by_id(student_id: str):
-    """Delete a student"""
     try:
         logger.info(f"Deleting student: {student_id}")
         
@@ -127,10 +117,8 @@ async def delete_student_by_id(student_id: str):
         logger.error(f"Error deleting student: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to delete student: {str(e)}")
 
-# List all students
 @router.get("/students")
 async def list_all_students():
-    """Get all students"""
     try:
         logger.info("Listing all students")
         

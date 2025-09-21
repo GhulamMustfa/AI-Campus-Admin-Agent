@@ -6,18 +6,15 @@ from backend.db import students_collection
 logger = logging.getLogger(__name__)
 
 async def add_student(name: str, student_id: str, department: str, email: str) -> str:
-    """Add a new student to the database"""
     try:
         student = {
             "name": name,
             "student_id": student_id,
             "department": department,
             "email": email,
-            "created_at": datetime.datetime.utcnow().isoformat(),
+            "created_at": datetime.datetime.now().isoformat(),
             "is_active": True
         }
-        
-        # Check if student already exists
         existing = students_collection.find_one({"student_id": student_id})
         if existing:
             return f"Student with ID {student_id} already exists"
@@ -31,7 +28,6 @@ async def add_student(name: str, student_id: str, department: str, email: str) -
         return f"Error adding student: {str(e)}"
 
 async def get_student(student_id: str) -> Dict[str, Any]:
-    """Get student information by student ID"""
     try:
         student = students_collection.find_one({"student_id": student_id})
         if student:
@@ -45,9 +41,7 @@ async def get_student(student_id: str) -> Dict[str, Any]:
         return {"error": f"Error retrieving student: {str(e)}"}
 
 async def update_student(student_id: str, field: str, new_value: str) -> str:
-    """Update a student's information"""
     try:
-        # Validate field
         allowed_fields = ["name", "department", "email"]
         if field not in allowed_fields:
             return f"Invalid field '{field}'. Allowed fields: {allowed_fields}"
@@ -143,12 +137,9 @@ async def get_recent_onboarded_students(limit: int = 5) -> List[Dict[str, Any]]:
         return []
 
 async def get_active_students_last_7_days() -> int:
-    """Get number of active students in the last 7 days (mock implementation)"""
     try:
-        # This is a mock implementation - in a real system, you'd track activity logs
-        # For now, we'll return a percentage of total students
         total = await get_total_students()
-        active_count = int(total * 0.7)  # Assume 70% are active
+        active_count = int(total * 0.7)
         
         logger.info(f"Active students (last 7 days): {active_count}")
         return active_count
@@ -158,14 +149,11 @@ async def get_active_students_last_7_days() -> int:
         return 0
 
 async def send_email(student_id: str, message: str) -> str:
-    """Send an email notification to a student (mock implementation)"""
     try:
-        # Check if student exists
         student = students_collection.find_one({"student_id": student_id})
         if not student:
             return f"Student {student_id} not found"
         
-        # Mock email sending - in production, integrate with email service
         logger.info(f"Mock email sent to {student['email']}: {message}")
         
         return f"Email sent to {student['name']} ({student['email']}): {message}"
