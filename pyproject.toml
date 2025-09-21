@@ -1,0 +1,22 @@
+[project]
+name = "ai-campus-admin-agent"
+version = "1.0.0"
+description = "AI Final Hackathon project build with FastAPI and OpenAI Agent SDK"
+authors = [
+    {name = "Your Name",email = "you@example.com"}
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi (>=0.117.1,<0.118.0)",
+    "uvicorn[standard] (>=0.36.0,<0.37.0)",
+    "pymongo (>=4.15.1,<5.0.0)",
+    "python-dotenv (>=1.1.1,<2.0.0)",
+    "openai (>=1.40.0)",
+    "email-validator (>=2.3.0,<3.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
