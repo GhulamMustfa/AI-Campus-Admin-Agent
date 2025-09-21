@@ -16,13 +16,4 @@ def db_uri():
 client = db_uri()
 db = client["campus_admin_agent"]
 
-
-students = db["students"]
-conversations = db["conversations"]
-activity_logs = db["activity_logs"]
-
-
-def fix_id(doc):
-    doc["id"] = str(doc["_id"])
-    del doc["_id"]
-    return doc
+students_collection = db["students"]
