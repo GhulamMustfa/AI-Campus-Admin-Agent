@@ -32,18 +32,15 @@ TOOL_FUNCTIONS = {
 }
 
 def get_conversation_context(user_id: str, max_turns: int = 10) -> List[Dict[str, str]]:
-    """Get conversation history for context"""
     history = conversation_memory.get(user_id, [])
     return history[-max_turns:] if len(history) > max_turns else history
 
 def add_to_conversation(user_id: str, role: str, content: str):
-    """Add message to conversation history"""
     if user_id not in conversation_memory:
         conversation_memory[user_id] = []
     conversation_memory[user_id].append({"role": role, "content": content})
 
 async def execute_tool_call(tool_name: str, arguments: Dict[str, Any]) -> str:
-    """Execute a tool function call"""
     try:
         if tool_name not in TOOL_FUNCTIONS:
             return f"Error: Tool '{tool_name}' not found"
@@ -61,9 +58,7 @@ async def execute_tool_call(tool_name: str, arguments: Dict[str, Any]) -> str:
         return f"Error executing {tool_name}: {str(e)}"
 
 def call_gemini_api(messages: List[Dict[str, str]]) -> str:
-    """Call Gemini API with messages"""
     try:
-        # Convert messages to Gemini format
         contents = []
         for msg in messages:
             if msg["role"] == "system":
@@ -73,26 +68,25 @@ def call_gemini_api(messages: List[Dict[str, str]]) -> str:
             elif msg["role"] == "assistant":
                 contents.append({"role": "model", "parts": [{"text": msg["content"]}]})
         
-        # Add system prompt
-        system_prompt = """You are an AI Campus Admin Agent. You help manage student records and provide campus information.
+        system_prompt = """
+    You are an AI Campus Admin Agent. You help manage student records and provide campus information.
+    You have access to these tools:
+    - list_students: Get all students
+    - add_student: Add a new student (requires: name, student_id, department, email)
+    - get_student: Get student by ID (requires: student_id)
+    - update_student: Update student info (requires: student_id, field, new_value)
+    - delete_student: Delete student (requires: student_id)
+    - get_total_students: Get total count
+    - get_students_by_department: Get department breakdown
+    - get_recent_onboarded_students: Get recent students
+    - get_active_students_last_7_days: Get active students count
+    - send_email: Send email to student (requires: student_id, message)
 
-You have access to these tools:
-- list_students: Get all students
-- add_student: Add a new student (requires: name, student_id, department, email)
-- get_student: Get student by ID (requires: student_id)
-- update_student: Update student info (requires: student_id, field, new_value)
-- delete_student: Delete student (requires: student_id)
-- get_total_students: Get total count
-- get_students_by_department: Get department breakdown
-- get_recent_onboarded_students: Get recent students
-- get_active_students_last_7_days: Get active students count
-- send_email: Send email to student (requires: student_id, message)
+    Tool calling format:
+    - No parameters: [TOOL_CALL:tool_name:{}]
+    - With parameters: [TOOL_CALL:tool_name:{"param": "value"}]
 
-Tool calling format:
-- No parameters: [TOOL_CALL:tool_name:{}]
-- With parameters: [TOOL_CALL:tool_name:{"param": "value"}]
-
-Always call tools when needed, then provide a helpful response."""
+    Always call tools when needed, then provide a helpful response."""
 
         contents.insert(0, {"role": "user", "parts": [{"text": system_prompt}]})
 
@@ -122,11 +116,8 @@ Always call tools when needed, then provide a helpful response."""
         raise Exception(f"Gemini API error: {e}")
 
 def parse_tool_calls(response_text: str) -> List[Tuple[str, Dict[str, Any]]]:
-    """Parse tool calls from response text"""
     import re
     tool_calls = []
-    
-    # Pattern for tool calls with arguments
     pattern_with_args = r'\[TOOL_CALL:(\w+):({[^}]+})\]'
     matches_with_args = re.findall(pattern_with_args, response_text)
     
@@ -137,7 +128,6 @@ def parse_tool_calls(response_text: str) -> List[Tuple[str, Dict[str, Any]]]:
         except json.JSONDecodeError:
             pass
     
-    # Pattern for tool calls without arguments
     pattern_no_args = r'\[TOOL_CALL:(\w+):\{\}\]'
     matches_no_args = re.findall(pattern_no_args, response_text)
     
@@ -146,51 +136,44 @@ def parse_tool_calls(response_text: str) -> List[Tuple[str, Dict[str, Any]]]:
     
     return tool_calls
 
-async def run_agent_with_tools(user_message: str, user_id: str = "default_user") -> Tuple[str, List[str]]:
-    """Main agent function with tool calling and memory"""
+async def run_agent_with_tools(user_message: str, user_id: str = "default_user", use_memory: bool = True) -> Tuple[str, List[str]]:
     try:
-        # Get conversation context
-        context = get_conversation_context(user_id)
-        context.append({"role": "user", "content": user_message})
-        
-        # Call Gemini API
+        if use_memory:
+            context = get_conversation_context(user_id)
+            context.append({"role": "user", "content": user_message})
+        else:
+            context = [{"role": "user", "content": user_message}]
+
         response_text = call_gemini_api(context)
         tools_used = []
-        
-        # Check for tool calls
+
         tool_calls = parse_tool_calls(response_text)
-        
+
         if tool_calls:
-            # Execute tool calls
             tool_results = []
             for tool_name, tool_args in tool_calls:
                 tools_used.append(tool_name)
                 tool_result = await execute_tool_call(tool_name, tool_args)
                 tool_results.append(f"{tool_name}: {tool_result}")
-                
-                # Add tool result to context
+
                 context.append({"role": "assistant", "content": f"[TOOL_RESULT:{tool_name}]: {tool_result}"})
-            
-            # Get final response after tool execution
+
             final_response = call_gemini_api(context)
-            
-            # If no good response, format tool results
+
             if not final_response or final_response.strip() == response_text.strip():
                 final_response = f"I've retrieved the requested information:\n\n" + "\n\n".join(tool_results)
         else:
             final_response = response_text
-        
-        # Add to conversation memory
-        add_to_conversation(user_id, "user", user_message)
-        add_to_conversation(user_id, "assistant", final_response)
-        
+
+        if use_memory:
+            add_to_conversation(user_id, "user", user_message)
+            add_to_conversation(user_id, "assistant", final_response)
+
         return final_response, tools_used
-        
+
     except Exception as e:
         return f"I apologize, but I encountered an error: {str(e)}", []
 
-# Legacy function for backward compatibility
 async def run_agent(user_message: str, user_id: str = "default_user") -> str:
-    """Legacy function that returns only the response text"""
     response, _ = await run_agent_with_tools(user_message, user_id)
     return response

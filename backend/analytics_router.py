@@ -6,6 +6,7 @@ from backend.tools import (
 
 routers = APIRouter(tags=["Analytics"])
 
+
 @routers.get("/analytics")
 async def get_analytics():
     try:
@@ -13,7 +14,7 @@ async def get_analytics():
         students_by_dept = await get_students_by_department()
         recent_students = await get_recent_onboarded_students(limit=5)
         active_students = await get_active_students_last_7_days()
-        
+
         return {
             "total_students": total_students,
             "students_by_department": students_by_dept,
@@ -22,6 +23,7 @@ async def get_analytics():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @routers.get("/analytics/summary")
 async def get_analytics_summary():
