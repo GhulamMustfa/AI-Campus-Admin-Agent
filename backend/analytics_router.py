@@ -8,12 +8,12 @@ routers = APIRouter(tags=["Analytics"])
 
 
 @routers.get("/analytics")
-async def get_analytics():
+def get_analytics():
     try:
-        total_students = await get_total_students()
-        students_by_dept = await get_students_by_department()
-        recent_students = await get_recent_onboarded_students(limit=5)
-        active_students = await get_active_students_last_7_days()
+        total_students = get_total_students()
+        students_by_dept = get_students_by_department()
+        recent_students = get_recent_onboarded_students(limit=5)
+        active_students = get_active_students_last_7_days()
 
         return {
             "total_students": total_students,
@@ -26,10 +26,10 @@ async def get_analytics():
 
 
 @routers.get("/analytics/summary")
-async def get_analytics_summary():
+def get_analytics_summary():
     try:
-        total_students = await get_total_students()
-        students_by_dept = await get_students_by_department()
+        total_students = get_total_students()
+        students_by_dept = get_students_by_department()
         
         return {
             "total_students": total_students,

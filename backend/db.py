@@ -17,3 +17,5 @@ client = db_uri()
 db = client["campus_admin_agent"]
 
 students_collection = db["students"]
+get_db = db["events"]
+admins_collection = db["admins"]
