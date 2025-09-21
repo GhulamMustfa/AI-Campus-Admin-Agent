@@ -62,7 +62,6 @@ async def update_student(student_id: str, field: str, new_value: str) -> str:
         return f"Error updating student: {str(e)}"
 
 async def delete_student(student_id: str) -> str:
-    """Delete a student from the database"""
     try:
         result = students_collection.delete_one({"student_id": student_id})
         
@@ -77,7 +76,6 @@ async def delete_student(student_id: str) -> str:
         return f"Error deleting student: {str(e)}"
 
 async def list_students() -> List[Dict[str, Any]]:
-    """Get a list of all students"""
     try:
         students = list(students_collection.find())
         for student in students:
@@ -91,7 +89,6 @@ async def list_students() -> List[Dict[str, Any]]:
         return [{"error": f"Error retrieving students: {str(e)}"}]
 
 async def get_total_students() -> int:
-    """Get the total number of students"""
     try:
         count = students_collection.count_documents({"is_active": True})
         logger.info(f"Total students: {count}")
@@ -102,7 +99,6 @@ async def get_total_students() -> int:
         return 0
 
 async def get_students_by_department() -> Dict[str, int]:
-    """Get the number of students in each department"""
     try:
         pipeline = [
             {"$match": {"is_active": True}},
@@ -120,7 +116,6 @@ async def get_students_by_department() -> Dict[str, int]:
         return {}
 
 async def get_recent_onboarded_students(limit: int = 5) -> List[Dict[str, Any]]:
-    """Get recently enrolled students"""
     try:
         students = list(students_collection.find(
             {"is_active": True}

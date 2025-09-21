@@ -5,7 +5,6 @@ import requests
 from typing import List, Dict, Any, Tuple
 import asyncio
 
-# Import our tools
 from backend.tools import (
     add_student, get_student, update_student, delete_student, list_students,
     get_total_students, get_students_by_department, get_recent_onboarded_students,
@@ -14,14 +13,11 @@ from backend.tools import (
 
 logger = logging.getLogger(__name__)
 
-# Gemini API configuration
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GEMINI_ENDPOINT = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
-# Conversation memory
 conversation_memory: Dict[str, List[Dict[str, str]]] = {}
 
-# Tool function mapping
 TOOL_FUNCTIONS = {
     "add_student": add_student,
     "get_student": get_student,
