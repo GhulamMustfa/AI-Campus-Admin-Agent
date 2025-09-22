@@ -15,7 +15,7 @@ def add_student(name: str, student_id: int, department: str, email: str) -> Dict
         "student_id": student_id,
         "department": department,
         "email": email,
-        "created_at": datetime.datetime.utcnow()
+        "created_at": datetime.datetime.now()
     }
     result = students_collection.insert_one(student)
     student["_id"] = str(result.inserted_id)

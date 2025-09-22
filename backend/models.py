@@ -17,7 +17,7 @@ class UpdateStudent(BaseModel):
     new_value: str
 
 
-# Models
+
 class ChatMessage(BaseModel):
     message: str
     user_id: str

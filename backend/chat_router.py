@@ -6,9 +6,8 @@ from backend.agent import run_agent, stream_agent
 
 router = APIRouter(tags=["Chat"])
 
-# Request model
 class ChatRequest(BaseModel):
-    user_id: str = None  # optional for /chat
+    user_id: str = None
     message: str
 
 # Normal chat - no memory

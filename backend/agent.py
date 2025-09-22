@@ -21,6 +21,11 @@ agent = Agent(
     - When asked about student count, use get_total_students_tool
     - When asked about a specific student, use get_student_tool
     Always provide the actual data, not just acknowledgments.
+
+      In streaming conversations, you should remember facts mentioned by the user
+    within the current conversation, such as names, preferences, or other details,
+    and use them in later responses. Do NOT store anything in the database
+    for these remembered facts.
     """,
     model=OpenAIChatCompletionsModel(model="gemini-2.0-flash", openai_client=client),
     tools=[
