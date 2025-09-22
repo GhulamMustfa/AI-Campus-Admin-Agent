@@ -1,16 +1,14 @@
-# backend/agent.py
 import os
 from openai import AsyncOpenAI
 from agents import Agent, OpenAIChatCompletionsModel, Runner
 from .tools import *
+from backend.rag_agent import get_thread_context
 
-# ----------------- OpenAI Client -----------------
 client = AsyncOpenAI(
     api_key=os.getenv("GEMINI_API_KEY"),
     base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
 )
 
-# ----------------- Agent Setup -----------------
 agent = Agent(
     name="Campus Admin Agent",
     instructions="""
@@ -22,7 +20,7 @@ agent = Agent(
     - When asked about a specific student, use get_student_tool
     Always provide the actual data, not just acknowledgments.
 
-      In streaming conversations, you should remember facts mentioned by the user
+    In streaming conversations, you should remember facts mentioned by the user
     within the current conversation, such as names, preferences, or other details,
     and use them in later responses. Do NOT store anything in the database
     for these remembered facts.
@@ -36,37 +34,54 @@ agent = Agent(
     ],
 )
 
-# ----------------- Conversation Memory -----------------
 conversation_memory = {}
 
-# ----------------- Normal chat - no memory -----------------
 async def run_agent(message: str):
     runner = Runner()
     result = await runner.run(agent, message)
     return result.final_output.strip()
 
-# ----------------- Streaming chat - with memory per user -----------------
-async def stream_agent(message: str, user_id: str, thread_id: str):
-    # Initialize memory for user if not exists
+
+async def stream_agent(message: str, user_id: str, thread_id: str, pdf_content: str | None = None, save_permanently: bool = False):
     if user_id not in conversation_memory:
         conversation_memory[user_id] = {}
-
-    # Initialize memory for thread if not exists
     if thread_id not in conversation_memory[user_id]:
-        conversation_memory[user_id][thread_id] = []
+        conversation_memory[user_id][thread_id] = {"messages": [], "pdf_context": ""}
 
-    # Append user message to memory
-    conversation_memory[user_id][thread_id].append({"role": "user", "content": message})
+    thread_memory = conversation_memory[user_id][thread_id]
+    thread_memory["messages"].append({"role": "user", "content": message})
 
-    # Build conversation text
-    context_messages = conversation_memory[user_id][thread_id]
-    conversation_text = "\n".join([f"{m['role']}: {m['content']}" for m in context_messages])
+    if pdf_content:
+        thread_memory["pdf_context"] = pdf_content
 
-    # Run agent
+    context = get_thread_context(conversation_memory, user_id, thread_id)
     runner = Runner()
-    result = await runner.run(agent, conversation_text)
 
-    # Save assistant reply
-    conversation_memory[user_id][thread_id].append({"role": "assistant", "content": result.final_output})
+    final_prompt = f"""
+    Use the following context to answer the question. If the question requires a tool,
+    use the context to extract any necessary information for the tool's parameters.
 
-    yield result.final_output
+    Context:
+    {context}
+
+    Question:
+    {message}
+    """
+
+    result = await runner.run(agent, final_prompt)
+    answer = result.final_output.strip()
+
+    thread_memory["messages"].append({"role": "assistant", "content": answer})
+    
+    if save_permanently:
+        from backend.db import db
+        db.user_threads.update_one(
+            {"user_id": user_id, "thread_id": thread_id},
+            {"$set": {
+                "messages": thread_memory["messages"],
+                "pdf_context": thread_memory["pdf_context"]
+            }},
+            upsert=True
+        )
+
+    yield answer
