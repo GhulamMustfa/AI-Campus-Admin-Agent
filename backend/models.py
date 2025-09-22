@@ -18,14 +18,10 @@ class UpdateStudent(BaseModel):
 
 
 
-class ChatMessage(BaseModel):
+class ChatRequest(BaseModel):
+    user_id: str = None
     message: str
-    user_id: str
 
 class ThreadCreate(BaseModel):
-    title: str
-    description: Optional[str] = None
-
-class ThreadUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
+    user_id: str
+    thread_id: str

@@ -46,28 +46,27 @@ async def run_agent(message: str):
     return result.final_output.strip()
 
 # ----------------- Streaming chat - with memory per user -----------------
-# streaming chat - with memory per user
-async def stream_agent(message: str, user_id: str):
+async def stream_agent(message: str, user_id: str, thread_id: str):
+    # Initialize memory for user if not exists
     if user_id not in conversation_memory:
-        conversation_memory[user_id] = []
+        conversation_memory[user_id] = {}
+
+    # Initialize memory for thread if not exists
+    if thread_id not in conversation_memory[user_id]:
+        conversation_memory[user_id][thread_id] = []
 
     # Append user message to memory
-    conversation_memory[user_id].append({"role": "user", "content": message})
+    conversation_memory[user_id][thread_id].append({"role": "user", "content": message})
 
-    # Combine previous messages into a single context string
-    context_messages = conversation_memory[user_id]
+    # Build conversation text
+    context_messages = conversation_memory[user_id][thread_id]
+    conversation_text = "\n".join([f"{m['role']}: {m['content']}" for m in context_messages])
 
-    # Send all context messages to Runner
+    # Run agent
     runner = Runner()
-    # Here we pass the entire conversation as a joined string
-    conversation_text = "\n".join(
-        [f"{m['role']}: {m['content']}" for m in context_messages]
-    )
-
     result = await runner.run(agent, conversation_text)
 
-    # Save assistant reply to memory
-    conversation_memory[user_id].append({"role": "assistant", "content": result.final_output})
+    # Save assistant reply
+    conversation_memory[user_id][thread_id].append({"role": "assistant", "content": result.final_output})
 
-    # Yield the final output
     yield result.final_output
