@@ -31,15 +31,38 @@ agent = Agent(
     ],
 )
 
-# ----------------- Run / Stream Functions -----------------
-async def run_agent(message: str, context=None) -> str:
-    """Run agent with optional context/memory"""
+# ----------------- Conversation Memory -----------------
+conversation_memory = {}
+
+# ----------------- Normal chat - no memory -----------------
+async def run_agent(message: str):
     runner = Runner()
     result = await runner.run(agent, message)
     return result.final_output.strip()
 
-async def stream_agent(message: str, context=None):
-    """Stream agent output as tokens"""
+# ----------------- Streaming chat - with memory per user -----------------
+# streaming chat - with memory per user
+async def stream_agent(message: str, user_id: str):
+    if user_id not in conversation_memory:
+        conversation_memory[user_id] = []
+
+    # Append user message to memory
+    conversation_memory[user_id].append({"role": "user", "content": message})
+
+    # Combine previous messages into a single context string
+    context_messages = conversation_memory[user_id]
+
+    # Send all context messages to Runner
     runner = Runner()
-    result = await runner.run(agent, message)
+    # Here we pass the entire conversation as a joined string
+    conversation_text = "\n".join(
+        [f"{m['role']}: {m['content']}" for m in context_messages]
+    )
+
+    result = await runner.run(agent, conversation_text)
+
+    # Save assistant reply to memory
+    conversation_memory[user_id].append({"role": "assistant", "content": result.final_output})
+
+    # Yield the final output
     yield result.final_output

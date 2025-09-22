@@ -1,18 +1,10 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, EmailStr
+
+from backend.models import Student, UpdateStudent
 from backend.tools import add_student, get_student, update_student, delete_student, list_students
 
 router = APIRouter(tags=["Students"])
-
-class Student(BaseModel):
-    name: str
-    student_id: str
-    department: str
-    email: EmailStr
-
-class UpdateStudent(BaseModel):
-    field: str
-    new_value: str
 
 
 @router.post("/students")
