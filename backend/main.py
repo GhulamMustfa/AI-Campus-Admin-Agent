@@ -1,4 +1,5 @@
 import datetime
+import uvicorn
 from fastapi import FastAPI, Depends, HTTPException, Query, Body, status
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -48,3 +49,7 @@ def admin_login(auth_data: AuthRequest):
 app.include_router(student_router)
 app.include_router(analytics_router)
 app.include_router(chat_router)
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="127.0.0.1", port=8000)
